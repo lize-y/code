@@ -9,4 +9,10 @@ public class UserServiceimpl implements UserService {
     public User getUser(Long id) {
         return new User(id,"X1ayu");
     }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return new User(114L,username);
+    }
+
 }

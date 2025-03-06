@@ -10,19 +10,19 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String data = invoke(3L).toString();
+        String data = invoke("X1").toString();
         System.out.println(data);
     }
 
-    private static <T> T invoke(Long id) {
+    private static <T> T invoke(String name) {
         RpcClient client = new SocketClient();
 
         RpcReq req = RpcReq.builder()
                 .reqId("5")
                 .interfaceName("cn.X1ayu.rpc.api.UserService")
-                .methodName("getUser")
-                .parameters(new Object[]{id})
-                .parameterTypes(new Class[]{Long.class})
+                .methodName("getUserByUsername")
+                .parameters(new Object[]{name})
+                .parameterTypes(new Class[]{String.class})
                 .build();
 
         RpcResp<?> rpcResp = client.sendRequest(req);

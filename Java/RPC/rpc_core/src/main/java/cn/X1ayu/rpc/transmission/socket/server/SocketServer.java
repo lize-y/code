@@ -7,24 +7,44 @@ import cn.X1ayu.rpc.handler.RpcReqHandler;
 import cn.X1ayu.rpc.provider.ServiceProvider;
 import cn.X1ayu.rpc.provider.impl.SimpleServiceProvide;
 import cn.X1ayu.rpc.transmission.RpcServer;
+import cn.X1ayu.rpc.util.ThreadPoolUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 public class SocketServer implements RpcServer {
-    ServiceProvider serviceProvider = new SimpleServiceProvide();
+    private final int port;
+    private final RpcReqHandler rpcReqHandler;
+    private final ServiceProvider serviceProvider;
+    private final ExecutorService executor;
+
+    public SocketServer() {
+        this(8888);
+    }
+    public SocketServer(int port) {
+        this(port, new SimpleServiceProvide());
+    }
+
+    public SocketServer(int port, ServiceProvider serviceProvider) {
+        this.port = port;
+        this.serviceProvider = serviceProvider;
+        this.rpcReqHandler = new RpcReqHandler(serviceProvider);
+        this.executor = ThreadPoolUtils.createIoIntensiveThreadPool("socket-rpc-server-");
+    }
+
 
     @Override
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(8888)){
-            log.info("socket server start");
+        try (ServerSocket serverSocket = new ServerSocket(port)){
+            log.info("socket server start:{}",port);
             Socket socket;
             while ((socket= serverSocket.accept())!=null){
-                new Thread(new SocketReqHandle(socket, new RpcReqHandler(serviceProvider))).start();
+                executor.submit(new SocketReqHandle(socket, rpcReqHandler));
             }
         }catch (Exception e){
             log.error("socket server error", e);
