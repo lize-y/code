@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String data = invoke(1L).toString();
+        String data = invoke(3L).toString();
         System.out.println(data);
     }
 
@@ -18,14 +18,14 @@ public class Main {
         RpcClient client = new SocketClient();
 
         RpcReq req = RpcReq.builder()
-                .reqId("123")
-                .interfaceName("cn.X1ayu.rpc.server.UserService")
+                .reqId("5")
+                .interfaceName("cn.X1ayu.rpc.api.UserService")
                 .methodName("getUser")
                 .parameters(new Object[]{id})
                 .parameterTypes(new Class[]{Long.class})
                 .build();
 
         RpcResp<?> rpcResp = client.sendRequest(req);
-        return (T) rpcResp.getData();
+        return (T) rpcResp;
     }
 }

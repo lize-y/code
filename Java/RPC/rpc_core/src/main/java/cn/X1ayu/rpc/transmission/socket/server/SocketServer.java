@@ -1,7 +1,11 @@
 package cn.X1ayu.rpc.transmission.socket.server;
 
+import cn.X1ayu.rpc.config.RpcServiceConfig;
 import cn.X1ayu.rpc.dto.RpcReq;
 import cn.X1ayu.rpc.dto.RpcResp;
+import cn.X1ayu.rpc.handler.RpcReqHandler;
+import cn.X1ayu.rpc.provider.ServiceProvider;
+import cn.X1ayu.rpc.provider.impl.SimpleServiceProvide;
 import cn.X1ayu.rpc.transmission.RpcServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +16,7 @@ import java.net.Socket;
 
 @Slf4j
 public class SocketServer implements RpcServer {
+    ServiceProvider serviceProvider = new SimpleServiceProvide();
 
     @Override
     public void start() {
@@ -19,19 +24,17 @@ public class SocketServer implements RpcServer {
             log.info("socket server start");
             Socket socket;
             while ((socket= serverSocket.accept())!=null){
-                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                RpcReq rpcReq = (RpcReq) objectInputStream.readObject();
-                log.info("socket server receive msg: {}", rpcReq);
-
-                // 处理请求
-                String data = "hello world";
-
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                objectOutputStream.writeObject(RpcResp.success(rpcReq.getReqId(), data));
-                objectOutputStream.flush();
+                new Thread(new SocketReqHandle(socket, new RpcReqHandler(serviceProvider))).start();
             }
         }catch (Exception e){
             log.error("socket server error", e);
         }
     }
+
+    @Override
+    public void publishService(RpcServiceConfig rpcServiceConfig) {
+        serviceProvider.publishService(rpcServiceConfig);
+    }
+
+
 }
